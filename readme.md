@@ -67,7 +67,7 @@ This project uses a cleaned and unified dataset hosted on Kaggle:
 *   **实时推理:** 优化了代码，支持 CPU 和 GPU 运行。
 
 ## 技术栈
-*   **核心:** Python 3.9+
+*   **核心:** Python 3.10+
 *   **深度学习:** PyTorch, Torchvision
 *   **计算机视觉:** OpenCV, PIL
 *   **后端:** FastAPI, Uvicorn
