@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fracture Detection System</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 2rem; }
+        .container { max-width: 1200px; margin: 0 auto; }
+        .header { background: white; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .header h1 { color: #667eea; font-size: 2.5rem; margin-bottom: 0.5rem; display: flex; align-items: center; justify-content: center; gap: 1rem; }
+        .header p { color: #666; font-size: 1.1rem; }
+        .upload-section { background: white; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .upload-section h2 { color: #333; margin-bottom: 1.5rem; border-bottom: 3px solid #667eea; padding-bottom: 0.5rem; }
+        .upload-area { border: 3px dashed #667eea; border-radius: 10px; padding: 3rem; text-align: center; cursor: pointer; transition: all 0.3s; background: #f8f9ff; }
+        .upload-area:hover { background: #e8ebff; border-color: #5568d3; }
+        .upload-area.dragover { background: #d1d5ff; border-color: #4451b8; }
+        #fileInput { display: none; }
+        .btn { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border: none; padding: 1rem 2rem; font-size: 1.1rem; border-radius: 8px; cursor: pointer; transition: transform 0.2s; margin-top: 1rem; margin-left: 0.5rem; margin-right: 0.5rem; }
+        .btn:hover { transform: translateY(-2px); }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .btn.cancel { background: #d63031; }
+        .preview-container { margin: 1.5rem 0; text-align: center; }
+        .preview-container img { max-width: 300px; max-height: 300px; border-radius: 10px; box-shadow: 0 5px 15px rgba(0,0,0,0.2); margin-bottom: 1rem; }
+        .results-section { background: white; padding: 2rem; border-radius: 15px; margin-bottom: 2rem; box-shadow: 0 10px 30px rgba(0,0,0,0.1); display: none; }
+        .results-section h2 { color: #333; margin-bottom: 1.5rem; border-bottom: 3px solid #667eea; padding-bottom: 0.5rem; }
+        .diagnosis-box { padding: 1.5rem; border-radius: 10px; margin-bottom: 1.5rem; text-align: center; }
+        .diagnosis-box.fracture { background: #fee; border: 2px solid #f88; }
+        .diagnosis-box.normal { background: #efe; border: 2px solid #8f8; }
+        .diagnosis-box h3 { font-size: 1.5rem; margin-bottom: 0.5rem; }
+        .diagnosis-box p { font-size: 1.2rem; color: #666; }
+        .image-container { text-align: center; margin: 2rem 0; }
+        .image-container h3 { color: #333; margin-bottom: 1rem; }
+        .image-container img { max-width: 100%; height: auto; border-radius: 10px; box-shadow: 0 5px 20px rgba(0,0,0,0.2); }
+        .info-text { text-align: center; color: #d63031; font-size: 1rem; margin-top: 1rem; }
+        .stats-section { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); }
+        .stats-section h2 { color: #333; margin-bottom: 1.5rem; border-bottom: 3px solid #667eea; padding-bottom: 0.5rem; }
+        .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem; margin-top: 1.5rem; }
+        .stat-card { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 2rem; border-radius: 10px; color: white; text-align: center; }
+        .stat-card h3 { font-size: 3rem; margin-bottom: 0.5rem; }
+        .stat-card p { font-size: 1rem; opacity: 0.9; }
+        .loading { display: none; text-align: center; padding: 2rem; }
+        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #667eea; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 0 auto; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        .error { background: #fee; border: 2px solid #f88; padding: 1rem; border-radius: 8px; color: #c00; margin: 1rem 0; display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🩻 Fracture Detection System</h1>
+            <p>AI-powered X-ray analysis</p>
+        </div>
+
+        <div class="upload-section">
+            <h2>Upload X-ray Image</h2>
+            <div class="upload-area" id="uploadArea">
+                <p>📁 Drag & drop X-ray image here or click to browse</p>
+                <input type="file" id="fileInput" accept="image/*">
+                <button class="btn" onclick="document.getElementById('fileInput').click()">
+                    Choose File
+                </button>
+            </div>
+            
+            <div id="selectedFile" style="margin-top: 1rem; text-align: center; color: #666;"></div>
+            
+            <div class="preview-container" id="previewContainer" style="display: none;">
+                <img id="previewImage" src="" alt="Preview">
+                <div>
+                    <button class="btn" id="analyzeBtn" onclick="analyzeImage()">
+                        Start Analysis
+                    </button>
+                    <button class="btn cancel" onclick="cancelUpload()">
+                        Cancel
+                    </button>
+                </div>
+            </div>
+            
+            <div class="error" id="errorMsg"></div>
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Analyzing image...</p>
+            </div>
+        </div>
+
+        <div class="results-section" id="resultsSection">
+            <h2>Analysis Results</h2>
+            <div class="diagnosis-box" id="diagnosisBox">
+                <h3 id="diagnosisText">Diagnosis: undefined</h3>
+                <p id="confidenceText">Confidence: NaN%</p>
+            </div>
+            
+            <div class="image-container" id="imageContainer">
+                <h3>AI Attention Heatmap:</h3>
+                <img id="resultImage" src="" alt="Detection Result">
+                <p class="info-text">Potential fracture detected.</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 2rem;">
+                <button class="btn" onclick="resetAnalysis()">New Analysis</button>
+            </div>
+        </div>
+
+        <div class="stats-section">
+            <h2>System Statistics</h2>
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <h3 id="totalAnalyzed">0</h3>
+                    <p>Total Analyzed</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="fractureCount">0</h3>
+                    <p>Fractures Detected</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="normalCount">0</h3>
+                    <p>Normal Cases</p>
+                </div>
+                <div class="stat-card">
+                    <h3 id="avgConfidence">0%</h3>
+                    <p>Avg Confidence</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentImageId = null;
+
+        const uploadArea = document.getElementById('uploadArea');
+        const fileInput = document.getElementById('fileInput');
+        const selectedFile = document.getElementById('selectedFile');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const analyzeBtn = document.getElementById('analyzeBtn');
+        const errorMsg = document.getElementById('errorMsg');
+        const loading = document.getElementById('loading');
+        const resultsSection = document.getElementById('resultsSection');
+
+        uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
+        uploadArea.addEventListener('dragleave', () => { uploadArea.classList.remove('dragover'); });
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) { fileInput.files = files; handleFileSelect(); }
+        });
+
+        fileInput.addEventListener('change', handleFileSelect);
+
+        async function handleFileSelect() {
+            const file = fileInput.files[0];
+            if (!file) return;
+
+            selectedFile.textContent = `Selected: ${file.name}`;
+            errorMsg.style.display = 'none';
+            resultsSection.style.display = 'none';
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                previewImage.src = e.target.result;
+                previewContainer.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            try {
+                loading.style.display = 'block';
+                const response = await fetch('/api/v1/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                
+                if (response.ok) {
+                    currentImageId = data.image_id;
+                    console.log("Upload OK, ID:", currentImageId);
+                } else {
+                    throw new Error(data.detail || 'Upload failed');
+                }
+            } catch (error) {
+                errorMsg.textContent = `Upload Error: ${error.message}`;
+                errorMsg.style.display = 'block';
+                previewContainer.style.display = 'none';
+            } finally {
+                loading.style.display = 'none';
+            }
+        }
+
+        async function analyzeImage() {
+            if (!currentImageId) {
+                errorMsg.textContent = 'Error: Image not uploaded yet.';
+                errorMsg.style.display = 'block';
+                return;
+            }
+
+            errorMsg.style.display = 'none';
+            loading.style.display = 'block';
+            analyzeBtn.disabled = true;
+
+            try {
+                const response = await fetch(`/api/v1/predict/${currentImageId}`, {
+                    method: 'POST'
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    displayResults(data.result);
+                    await loadStats();
+                } else {
+                    throw new Error(data.detail || 'Analysis failed');
+                }
+            } catch (error) {
+                errorMsg.textContent = `Analysis Error: ${error.message}`;
+                errorMsg.style.display = 'block';
+            } finally {
+                loading.style.display = 'none';
+                analyzeBtn.disabled = false;
+            }
+        }
+
+        function displayResults(result) {
+            const diagnosisBox = document.getElementById('diagnosisBox');
+            const diagnosisText = document.getElementById('diagnosisText');
+            const confidenceText = document.getElementById('confidenceText');
+            const resultImage = document.getElementById('resultImage');
+            const imageContainer = document.getElementById('imageContainer');
+
+            diagnosisText.textContent = `Diagnosis: ${result.class}`;
+            confidenceText.textContent = `Confidence: ${(result.probability * 100).toFixed(1)}%`;
+
+            if (result.class === 'Fracture') {
+                diagnosisBox.className = 'diagnosis-box fracture';
+            } else {
+                diagnosisBox.className = 'diagnosis-box normal';
+            }
+
+            const imgUrl = result.bbox_url || result.heatmap_url;
+
+            if (imgUrl) {
+                resultImage.src = imgUrl + '?t=' + new Date().getTime();
+                imageContainer.style.display = 'block';
+            } else {
+                imageContainer.style.display = 'none';
+            }
+
+            previewContainer.style.display = 'none';
+            resultsSection.style.display = 'block';
+        }
+
+        async function loadStats() {
+            try {
+                const response = await fetch('/api/v1/stats');
+                const stats = await response.json();
+                document.getElementById('totalAnalyzed').textContent = stats.total_analyzed || 0;
+                document.getElementById('fractureCount').textContent = stats.fracture_count || 0;
+                document.getElementById('normalCount').textContent = stats.normal_count || 0;
+                document.getElementById('avgConfidence').textContent = `${(stats.avg_confidence * 100).toFixed(1)}%`;
+            } catch (error) {
+                console.error('Failed to load stats:', error);
+            }
+        }
+
+        function cancelUpload() {
+            currentImageId = null;
+            fileInput.value = '';
+            selectedFile.textContent = '';
+            previewContainer.style.display = 'none';
+            errorMsg.style.display = 'none';
+        }
+
+        function resetAnalysis() {
+            currentImageId = null;
+            fileInput.value = '';
+            selectedFile.textContent = '';
+            previewContainer.style.display = 'none';
+            resultsSection.style.display = 'none';
+            errorMsg.style.display = 'none';
+        }
+
+        loadStats();
+        setInterval(loadStats, 10000);
+    </script>
+</body>
+</html>
