@@ -1,6 +1,6 @@
 # Fracture Detection System
 
-![Python](https://img.shields.io/badge/Python-3.9%2B-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-Deep_Learning-red) ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green) ![Status](https://img.shields.io/badge/Status-Research_Prototype-orange)
+![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-Deep_Learning-red) ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green) ![Status](https://img.shields.io/badge/Status-Research_Prototype-orange)
 
 ## Overview
 **Fracture Detection System** is a full-cycle Deep Learning application for automated X-ray analysis. Unlike standard object detection wrappers, this project implements a **custom two-stage pipeline** from scratch:
