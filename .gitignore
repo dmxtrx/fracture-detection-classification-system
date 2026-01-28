@@ -18,3 +18,9 @@ data/data.zip
 
 # Models
 uploads/
+data/models/*.pth
+data/models/detector_part_*
+*.pth
+data/models/detector_part_*
+__pycache__/
+.DS_Store
