@@ -52,7 +52,6 @@
             <h1>🩻 Fracture Detection System</h1>
             <p>AI-powered X-ray analysis</p>
         </div>
-
         <div class="upload-section">
             <h2>Upload X-ray Image</h2>
             <div class="upload-area" id="uploadArea">
@@ -62,9 +61,7 @@
                     Choose File
                 </button>
             </div>
-            
             <div id="selectedFile" style="margin-top: 1rem; text-align: center; color: #666;"></div>
-            
             <div class="preview-container" id="previewContainer" style="display: none;">
                 <img id="previewImage" src="" alt="Preview">
                 <div>
@@ -76,32 +73,27 @@
                     </button>
                 </div>
             </div>
-            
             <div class="error" id="errorMsg"></div>
             <div class="loading" id="loading">
                 <div class="spinner"></div>
                 <p>Analyzing image...</p>
             </div>
         </div>
-
         <div class="results-section" id="resultsSection">
             <h2>Analysis Results</h2>
             <div class="diagnosis-box" id="diagnosisBox">
                 <h3 id="diagnosisText">Diagnosis: undefined</h3>
                 <p id="confidenceText">Confidence: NaN%</p>
             </div>
-            
             <div class="image-container" id="imageContainer">
                 <h3>AI Attention Heatmap:</h3>
                 <img id="resultImage" src="" alt="Detection Result">
                 <p class="info-text">Potential fracture detected.</p>
             </div>
-
             <div style="text-align: center; margin-top: 2rem;">
                 <button class="btn" onclick="resetAnalysis()">New Analysis</button>
             </div>
         </div>
-
         <div class="stats-section">
             <h2>System Statistics</h2>
             <div class="stats-grid">
@@ -124,10 +116,8 @@
             </div>
         </div>
     </div>
-
     <script>
         let currentImageId = null;
-
         const uploadArea = document.getElementById('uploadArea');
         const fileInput = document.getElementById('fileInput');
         const selectedFile = document.getElementById('selectedFile');
@@ -137,82 +127,53 @@
         const errorMsg = document.getElementById('errorMsg');
         const loading = document.getElementById('loading');
         const resultsSection = document.getElementById('resultsSection');
-
         uploadArea.addEventListener('dragover', (e) => { e.preventDefault(); uploadArea.classList.add('dragover'); });
         uploadArea.addEventListener('dragleave', () => { uploadArea.classList.remove('dragover'); });
         uploadArea.addEventListener('drop', (e) => {
             e.preventDefault();
             uploadArea.classList.remove('dragover');
             const files = e.dataTransfer.files;
-            if (files.length > 0) { fileInput.files = files; handleFileSelect(); }
-        });
-
+            if (files.length > 0) { fileInput.files = files; handleFileSelect(); }});
         fileInput.addEventListener('change', handleFileSelect);
-
         async function handleFileSelect() {
             const file = fileInput.files[0];
             if (!file) return;
-
             selectedFile.textContent = `Selected: ${file.name}`;
             errorMsg.style.display = 'none';
             resultsSection.style.display = 'none';
-
             const reader = new FileReader();
             reader.onload = function(e) {
                 previewImage.src = e.target.result;
-                previewContainer.style.display = 'block';
-            };
+                previewContainer.style.display = 'block';};
             reader.readAsDataURL(file);
-
             const formData = new FormData();
             formData.append('file', file);
-
-            try {
-                loading.style.display = 'block';
+            try {loading.style.display = 'block';
                 const response = await fetch('/api/v1/upload', {
                     method: 'POST',
-                    body: formData
-                });
+                    body: formData});
                 const data = await response.json();
                 
-                if (response.ok) {
-                    currentImageId = data.image_id;
-                    console.log("Upload OK, ID:", currentImageId);
-                } else {
-                    throw new Error(data.detail || 'Upload failed');
-                }
+                if (response.ok) {currentImageId = data.image_id; console.log("Upload OK, ID:", currentImageId);}
+                else {throw new Error(data.detail || 'Upload failed');}
             } catch (error) {
                 errorMsg.textContent = `Upload Error: ${error.message}`;
                 errorMsg.style.display = 'block';
                 previewContainer.style.display = 'none';
-            } finally {
-                loading.style.display = 'none';
-            }
+            } finally {loading.style.display = 'none';}
         }
-
         async function analyzeImage() {
-            if (!currentImageId) {
-                errorMsg.textContent = 'Error: Image not uploaded yet.';
-                errorMsg.style.display = 'block';
-                return;
-            }
-
+            if (!currentImageId) {errorMsg.textContent = 'Error: Image not uploaded yet.';errorMsg.style.display = 'block';return;}
             errorMsg.style.display = 'none';
             loading.style.display = 'block';
             analyzeBtn.disabled = true;
-
             try {
                 const response = await fetch(`/api/v1/predict/${currentImageId}`, {
                     method: 'POST'
                 });
                 const data = await response.json();
-
-                if (response.ok) {
-                    displayResults(data.result);
-                    await loadStats();
-                } else {
-                    throw new Error(data.detail || 'Analysis failed');
-                }
+                if (response.ok) {displayResults(data.result);await loadStats();}
+                else {throw new Error(data.detail || 'Analysis failed');}
             } catch (error) {
                 errorMsg.textContent = `Analysis Error: ${error.message}`;
                 errorMsg.style.display = 'block';
@@ -221,36 +182,26 @@
                 analyzeBtn.disabled = false;
             }
         }
-
         function displayResults(result) {
             const diagnosisBox = document.getElementById('diagnosisBox');
             const diagnosisText = document.getElementById('diagnosisText');
             const confidenceText = document.getElementById('confidenceText');
             const resultImage = document.getElementById('resultImage');
             const imageContainer = document.getElementById('imageContainer');
-
             diagnosisText.textContent = `Diagnosis: ${result.class}`;
             confidenceText.textContent = `Confidence: ${(result.probability * 100).toFixed(1)}%`;
-
             if (result.class === 'Fracture') {
                 diagnosisBox.className = 'diagnosis-box fracture';
-            } else {
-                diagnosisBox.className = 'diagnosis-box normal';
-            }
+            } else {diagnosisBox.className = 'diagnosis-box normal';}
 
             const imgUrl = result.bbox_url || result.heatmap_url;
 
             if (imgUrl) {
                 resultImage.src = imgUrl + '?t=' + new Date().getTime();
-                imageContainer.style.display = 'block';
-            } else {
-                imageContainer.style.display = 'none';
-            }
+                imageContainer.style.display = 'block';} else {imageContainer.style.display = 'none';}
 
             previewContainer.style.display = 'none';
-            resultsSection.style.display = 'block';
-        }
-
+            resultsSection.style.display = 'block';}
         async function loadStats() {
             try {
                 const response = await fetch('/api/v1/stats');
@@ -263,7 +214,6 @@
                 console.error('Failed to load stats:', error);
             }
         }
-
         function cancelUpload() {
             currentImageId = null;
             fileInput.value = '';
@@ -271,7 +221,6 @@
             previewContainer.style.display = 'none';
             errorMsg.style.display = 'none';
         }
-
         function resetAnalysis() {
             currentImageId = null;
             fileInput.value = '';
@@ -280,7 +229,6 @@
             resultsSection.style.display = 'none';
             errorMsg.style.display = 'none';
         }
-
         loadStats();
         setInterval(loadStats, 10000);
     </script>
