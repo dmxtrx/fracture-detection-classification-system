@@ -155,33 +155,22 @@
                 const data = await response.json();
                 
                 if (response.ok) {currentImageId = data.image_id; console.log("Upload OK, ID:", currentImageId);}
-                else {throw new Error(data.detail || 'Upload failed');}
-            } catch (error) {
+                else {throw new Error(data.detail || 'Upload failed');} 
+                } catch (error) {
                 errorMsg.textContent = `Upload Error: ${error.message}`;
                 errorMsg.style.display = 'block';
-                previewContainer.style.display = 'none';
-            } finally {loading.style.display = 'none';}
-        }
+                previewContainer.style.display = 'none';} finally {loading.style.display = 'none';}}
         async function analyzeImage() {
             if (!currentImageId) {errorMsg.textContent = 'Error: Image not uploaded yet.';errorMsg.style.display = 'block';return;}
             errorMsg.style.display = 'none';
             loading.style.display = 'block';
             analyzeBtn.disabled = true;
-            try {
-                const response = await fetch(`/api/v1/predict/${currentImageId}`, {
-                    method: 'POST'
-                });
+            try {const response = await fetch(`/api/v1/predict/${currentImageId}`, {method: 'POST'});
                 const data = await response.json();
                 if (response.ok) {displayResults(data.result);await loadStats();}
                 else {throw new Error(data.detail || 'Analysis failed');}
-            } catch (error) {
-                errorMsg.textContent = `Analysis Error: ${error.message}`;
-                errorMsg.style.display = 'block';
-            } finally {
-                loading.style.display = 'none';
-                analyzeBtn.disabled = false;
-            }
-        }
+                } catch (error) {errorMsg.textContent = `Analysis Error: ${error.message}`; errorMsg.style.display = 'block';}
+            finally {loading.style.display = 'none'; analyzeBtn.disabled = false;}}
         function displayResults(result) {
             const diagnosisBox = document.getElementById('diagnosisBox');
             const diagnosisText = document.getElementById('diagnosisText');
@@ -190,16 +179,10 @@
             const imageContainer = document.getElementById('imageContainer');
             diagnosisText.textContent = `Diagnosis: ${result.class}`;
             confidenceText.textContent = `Confidence: ${(result.probability * 100).toFixed(1)}%`;
-            if (result.class === 'Fracture') {
-                diagnosisBox.className = 'diagnosis-box fracture';
-            } else {diagnosisBox.className = 'diagnosis-box normal';}
-
+            if (result.class === 'Fracture') {diagnosisBox.className = 'diagnosis-box fracture';}
+            else {diagnosisBox.className = 'diagnosis-box normal';}
             const imgUrl = result.bbox_url || result.heatmap_url;
-
-            if (imgUrl) {
-                resultImage.src = imgUrl + '?t=' + new Date().getTime();
-                imageContainer.style.display = 'block';} else {imageContainer.style.display = 'none';}
-
+            if (imgUrl) {resultImage.src = imgUrl + '?t=' + new Date().getTime(); imageContainer.style.display = 'block';} else {imageContainer.style.display = 'none';}
             previewContainer.style.display = 'none';
             resultsSection.style.display = 'block';}
         async function loadStats() {
@@ -210,25 +193,20 @@
                 document.getElementById('fractureCount').textContent = stats.fracture_count || 0;
                 document.getElementById('normalCount').textContent = stats.normal_count || 0;
                 document.getElementById('avgConfidence').textContent = `${(stats.avg_confidence * 100).toFixed(1)}%`;
-            } catch (error) {
-                console.error('Failed to load stats:', error);
-            }
-        }
+            } catch (error) {console.error('Failed to load stats:', error);}}
         function cancelUpload() {
             currentImageId = null;
             fileInput.value = '';
             selectedFile.textContent = '';
             previewContainer.style.display = 'none';
-            errorMsg.style.display = 'none';
-        }
+            errorMsg.style.display = 'none';}
         function resetAnalysis() {
             currentImageId = null;
             fileInput.value = '';
             selectedFile.textContent = '';
             previewContainer.style.display = 'none';
             resultsSection.style.display = 'none';
-            errorMsg.style.display = 'none';
-        }
+            errorMsg.style.display = 'none';}
         loadStats();
         setInterval(loadStats, 10000);
     </script>
