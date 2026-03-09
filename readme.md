@@ -2,7 +2,7 @@
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-blue) ![PyTorch](https://img.shields.io/badge/PyTorch-Deep_Learning-red) ![FastAPI](https://img.shields.io/badge/FastAPI-Backend-green) ![Status](https://img.shields.io/badge/Status-Research_Prototype-orange)
 
-## 🚀 Update v2.0 (January 2026)
+## Update (January 2026)
 Major architectural upgrade for the Detection module:
 *   **Moved from U-Net to Faster R-CNN:** The detection stage now uses a pre-trained ResNet50-FPN backbone for superior bounding box precision.
 *   **Improved Accuracy:** Better handling of small fractures and complex backgrounds compared to the previous segmentation-based approach.
